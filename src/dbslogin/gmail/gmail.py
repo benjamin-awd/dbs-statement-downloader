@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import logging
+import re
 import sys
+import time
+from base64 import urlsafe_b64decode
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 from dbslogin.gmail.credentials import get_gmail_service
-from dbslogin.settings import cloud_settings
+from dbslogin.settings import settings
 
 if TYPE_CHECKING:
     from googleapiclient._apis.gmail.v1.resources import GmailResource
@@ -20,7 +23,7 @@ class Gmail:
             self.gmail_service = get_gmail_service()
 
     def get_emails(self, query="is:unread", latest=False) -> list[Message]:
-        if subject := cloud_settings.otp_email_subject:
+        if subject := settings.otp_email_subject:
             query += " " + subject
 
         emails = (
@@ -41,7 +44,7 @@ class Gmail:
         messages = []
         for email in emails:
             email_id = email["id"]
-            logger.info("Retrieving email %s", email_id)
+            logger.debug("Retrieving email %s", email_id)
             message = (
                 self.gmail_service.users()
                 .messages()
@@ -71,13 +74,65 @@ class Gmail:
                             return result
         return None
 
+    def wait_for_new_message(self, timeout=time.time() + 60 * 5) -> Message:
+        """
+        Waits for a new email message to arrive within the specified period.
+
+        Args:
+            timeout (int): Maximum time to wait in seconds. Defaults to 5 minutes.
+
+        Returns:
+            latest_message: The latest email message received.
+        """
+        logger.info("Waiting for new message")
+        start_time = time.time()
+        current_message = self.get_emails(query="", latest=True)[0]
+        logger.info("Current message %s", current_message.message_id)
+
+        while time.time() < start_time + timeout:
+            latest_message = self.get_emails(query="", latest=True)[0]
+
+            if current_message.message_id != latest_message.message_id:
+                logger.info(
+                    "New message %s received, exiting loop", latest_message.message_id
+                )
+                return latest_message
+
+            time.sleep(1)
+
+        raise RuntimeError("Timed out - new email not found in inbox")
+
+    def extract_otp_from_message(self, message: Message) -> str:
+        """Retrieves a DBS OTP from a specific email"""
+        byte_data = self.get_byte_data(message)
+        data = urlsafe_b64decode(byte_data).decode("utf-8")
+        otp = self.search_string_for_otp(data)
+        return otp
+
+    def get_byte_data(self, message: Message) -> bytes:
+        if "body" in message.payload:
+            if "data" in message.payload["body"]:
+                return message.payload["body"]["data"]
+
+        if message.parts:
+            for part in message.parts:
+                return self.search_data_key(part.data)
+        raise RuntimeError("Byte data not found in email message")
+
+    @staticmethod
+    def search_string_for_otp(text: str) -> str:
+        if match := re.search(r"\d{6}", text):
+            otp = match.group(0)
+            return otp
+        raise RuntimeError("Could not find OTP in message")
+
 
 class Message(Gmail):
     def __init__(self, data: dict, gmail_service: GmailResource):
         self.message_id: str = data.get("id")  # type: ignore
         self.payload: dict = data.get("payload")  # type: ignore
         self.gmail_service = gmail_service
-        self.trusted_user_emails = cloud_settings.trusted_user_emails
+        self.trusted_user_emails = settings.trusted_user_emails
         super().__init__(gmail_service)
 
     def mark_as_read(self):

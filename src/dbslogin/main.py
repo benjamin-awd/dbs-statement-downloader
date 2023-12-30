@@ -1,32 +1,32 @@
 import logging
-import re
-from base64 import urlsafe_b64decode
 
-from dbslogin.gmail import Gmail, Message
+from dbslogin.browser.download import StatementDownloader, StatementRecord
+from dbslogin.browser.login import DbsAuthHandler
 
 logger = logging.getLogger(__name__)
 
 
 def main():
     """
-    Entrypoint for Cloud Run function that checks for a OTP email message
+    Entrypoint for Cloud Run function that logs into the DBS
+    web portal using Selenium, and downloads estatements
     """
-    logger.info("Beginning bank statement extraction")
-    client = Gmail()
-    messages: list[Message] = client.get_emails()
+    auth_handler = DbsAuthHandler()
+    driver = auth_handler.login()
+    cookies = driver.get_cookies()
+    downloader = StatementDownloader(cookies, auth_handler.user_agent)
 
-    for message in messages:
-        for part in message.parts:
-            byte_data = client.search_data_key(part.data)
-            data = urlsafe_b64decode(byte_data).decode("utf-8")
+    statement_metadata = downloader.list_statements()
 
-            if not data:
-                continue
+    for metadata in statement_metadata:
+        record = StatementRecord(**metadata)
+        pdf_statement = downloader.download_statement(record)
+        pdf_filename = (
+            f"dbs-{record.statement_type.lower()}-{record.statement_date}.pdf"
+        )
 
-            if match := re.search(r"\d{6}", data):
-                otp = match.group(0)
-                print(otp)
-                break
+        with open(pdf_filename, "wb") as pdf_file:
+            pdf_file.write(pdf_statement)
 
 
 if __name__ == "__main__":

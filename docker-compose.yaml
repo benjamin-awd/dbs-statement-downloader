@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  dbslogin:
+    build: .
+    container_name: dbslogin
+    image: dbslogin
+    volumes:
+      - $HOME/.config/gcloud:/root/.config/gcloud
+      - ./src/dbslogin:/app/dbslogin
+    env_file:
+      .env

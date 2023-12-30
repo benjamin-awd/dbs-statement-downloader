@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class CloudSettings(BaseSettings):
+    dbs_user_id: str = ""
+    dbs_pin: str = ""
     project_id: str = ""
     secret_id: str = ""
     trusted_user_emails: list = []
@@ -10,4 +12,4 @@ class CloudSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
-cloud_settings = CloudSettings()
+settings = CloudSettings()

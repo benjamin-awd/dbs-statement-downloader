@@ -8,7 +8,7 @@ from google.cloud import secretmanager
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from dbslogin.settings import cloud_settings
+from dbslogin.settings import settings
 
 if TYPE_CHECKING:
     from googleapiclient._apis.gmail.v1.resources import GmailResource
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_credentials(version_id="latest"):
-    project_id = cloud_settings.project_id
-    secret_id = cloud_settings.secret_id
+    project_id = settings.project_id
+    secret_id = settings.secret_id
     scopes = [
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.settings.basic",
