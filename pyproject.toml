@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "dbs-otp-login"
+version = "0.1.0"
+description = ""
+authors = ["Benjamin Dornel <benjamindornel@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "dbslogin", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+google-auth-oauthlib = "^1.2.0"
+google-auth = "^2.25.2"
+google-api-python-client = "^2.111.0"
+pydantic-settings = "^2.1.0"
+google-cloud-secret-manager = "^2.17.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+pylint = "^2.17.5"
+isort = "^5.12.0"
+taskipy = "^1.12.0"
+flake8 = "^6.1.0"
+pytest = "^7.4.1"
+pytest-xdist = "^3.3.1"
+pysnooper = "^1.2.0"
+google-api-python-client-stubs = "^1.23.0"
+mypy = "^1.6.1"
+
+[tool.taskipy.tasks]
+format = "isort . && black ."
+lint = "flake8 src/dbslogin && pylint src/dbslogin"
+full_test = "pytest -n auto"
+mypy = "mypy src/dbslogin"
+ci = "poetry run task format && poetry run task lint && poetry run task test"
+
+[tool.pylint]
+good-names = ["i", "j", "k"]
+disable = [
+    "missing-module-docstring",
+    "missing-function-docstring",
+    "missing-class-docstring",
+    "no-member"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+disable_error_code = [
+    "annotation-unchecked",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "dbslogin.*",
+    "google.*",
+    "google_auth_oauthlib.flow",
+]
+ignore_missing_imports = true
