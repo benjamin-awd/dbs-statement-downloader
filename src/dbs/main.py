@@ -1,7 +1,7 @@
 import logging
 
-from dbslogin.browser.download import StatementDownloader, StatementRecord
-from dbslogin.browser.login import DbsAuthHandler
+from dbs.browser.download import StatementDownloader, StatementRecord
+from dbs.browser.login import DbsAuthHandler
 
 logger = logging.getLogger(__name__)
 
