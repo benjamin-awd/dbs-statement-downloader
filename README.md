@@ -1,11 +1,48 @@
 # DBS Statement Downloader
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Linting: pylint](https://img.shields.io/badge/linting-pylint-orange)](https://github.com/pylint-dev/pylint)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Python library that logs into the DBS iBanking frontend and download estatements using Selenium.
+
+![](https://raw.githubusercontent.com/benjamin-awd/dbs-statement-downloader/main/docs/logs.png)
 
 Since logging into the frontend requires an OTP, text-forwarding (independent of this repository) is used to send the contents of the SMS to a Gmail service account. This OTP is then passed to the Selenium browser.
 
 Requests are then made to the undocumented DBS backend API (https://internet-banking.dbs.com.sg/api/v3/channels/estatements) to retrieve the relevant bank statements.
 
-# Prerequisites
+## Install
+Clone the repo
+```bash
+git clone https://github.com/benjamin-awd/dbs-statement-downloader.git
+```
+
+Install dependencies using [Homebrew](https://brew.sh/)
+```bash
+poetry env use 3.11
+poetry shell
+poetry install
+```
+
+Create .env file and update values
+```bash
+cp .env.template .env
+```
+
+See [Prerequsites](##Prerequisites) for information on Google Cloud/Gmail setup
+
+## Usage
+The downloader can be run directly:
+```bash
+python3 src/dbs/main.py
+```
+
+or with Docker compose:
+```bash
+docker-compose build && docker-compose up
+```
+
+## Prerequisites
 - Text-forwarding from iPhone/Android to an email account. On iOS, one possible method is to use an [automation](https://www.reddit.com/r/shortcuts/comments/10hnn94/autoforward_text_messages_with_shortcuts_is_it/) to forward SMS messages from DBS to an email account.
 - Google Cloud account, with the Gmail API enabled (see Google Cloud [docs](https://cloud.google.com/endpoints/docs/openapi/enable-api))
 - Authorized Gmail account (see Gmail API [docs](https://developers.google.com/gmail/api/quickstart/python))
