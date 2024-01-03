@@ -1,11 +1,17 @@
 [tool.poetry]
 name = "dbs-statement-downloader"
 version = "0.1.0"
-description = ""
+description = "Python library that downloads e-statements from DBS"
+repository = "https://github.com/benjamin-awd/dbs-statement-downloader"
 authors = ["Benjamin Dornel <benjamindornel@gmail.com>"]
 readme = "README.md"
 packages = [
     { include = "dbs", from = "src" },
+]
+license = "MIT"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.11",
 ]
 
 [tool.poetry.dependencies]
