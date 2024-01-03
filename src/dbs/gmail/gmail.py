@@ -8,8 +8,8 @@ from base64 import urlsafe_b64decode
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
-from dbslogin.gmail.credentials import get_gmail_service
-from dbslogin.settings import settings
+from dbs.gmail.credentials import get_gmail_service
+from dbs.settings import settings
 
 if TYPE_CHECKING:
     from googleapiclient._apis.gmail.v1.resources import GmailResource

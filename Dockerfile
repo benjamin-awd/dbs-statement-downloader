@@ -25,4 +25,4 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 RUN apt-get update && apt-get install -y chromium
 
-CMD ["python", "-m", "dbslogin.main"]
+CMD ["python", "-m", "dbs.main"]

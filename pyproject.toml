@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "dbs-otp-login"
+name = "dbs-statement-downloader"
 version = "0.1.0"
 description = ""
 authors = ["Benjamin Dornel <benjamindornel@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "dbslogin", from = "src" },
+    { include = "dbs", from = "src" },
 ]
 
 [tool.poetry.dependencies]
@@ -35,9 +35,9 @@ types-python-dateutil = "^2.8.19.14"
 
 [tool.taskipy.tasks]
 format = "isort . && black ."
-lint = "flake8 src/dbslogin && pylint src/dbslogin"
+lint = "flake8 src/dbs && pylint src/dbs"
 full_test = "pytest -n auto"
-mypy = "mypy src/dbslogin"
+mypy = "mypy src/dbs"
 ci = "poetry run task format && poetry run task lint && poetry run task test"
 
 [tool.pylint]
@@ -60,7 +60,7 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
-    "dbslogin.*",
+    "dbs.*",
     "google.*",
     "google_auth_oauthlib.flow",
 ]

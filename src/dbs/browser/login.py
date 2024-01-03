@@ -7,8 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from dbslogin.gmail import Gmail
-from dbslogin.settings import settings
+from dbs.gmail import Gmail
+from dbs.settings import settings
 
 logger = logging.getLogger(__name__)
 

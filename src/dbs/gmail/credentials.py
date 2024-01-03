@@ -8,7 +8,7 @@ from google.cloud import secretmanager
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from dbslogin.settings import settings
+from dbs.settings import settings
 
 if TYPE_CHECKING:
     from googleapiclient._apis.gmail.v1.resources import GmailResource
