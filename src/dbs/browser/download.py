@@ -121,6 +121,7 @@ class StatementDownloader:
         sort_order: str,
         page_size: int,
         page_number: int,
+        **_,
     ) -> list[dict]:
         """
         Returns a list of all estatement records within a given time period.
