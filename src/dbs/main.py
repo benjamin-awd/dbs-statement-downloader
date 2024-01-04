@@ -3,9 +3,11 @@ import logging
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
+from google.cloud import storage  # type: ignore
 
 from dbs.browser.download import StatementDownloader, StatementRecord
 from dbs.browser.login import DbsAuthHandler
+from dbs.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,9 @@ def main():
 
         with open(pdf_filename, "wb") as pdf_file:
             pdf_file.write(pdf_statement)
+
+        if args.upload:
+            upload_to_cloud(source_filename=pdf_filename)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -69,6 +74,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--page-number", type=int, default=1, help="Page number for statement retrieval"
     )
+    parser.add_argument(
+        "--upload",
+        action="store_true",
+        help="Flag that determines whether to upload to a cloud bucket",
+    )
     return parser.parse_args()
 
 
@@ -80,6 +90,21 @@ class Arguments(argparse.Namespace):
     sort_order: str
     page_size: int
     page_number: int
+    upload: bool
+
+
+def upload_to_cloud(
+    source_filename: str,
+    bucket_name: str = settings.bucket_name,
+    bucket_prefix: str = "dbs",
+) -> None:
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+    blob_name = f"{bucket_prefix}/{source_filename}"
+    blob = bucket.blob(blob_name)
+    logger.info("Attempting to upload to 'gs://%s/%s'", bucket_name, bucket_name)
+    blob.upload_from_filename(source_filename)
+    logger.info("Uploaded to %s", blob_name)
 
 
 if __name__ == "__main__":

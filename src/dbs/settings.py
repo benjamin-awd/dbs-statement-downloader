@@ -8,6 +8,7 @@ class CloudSettings(BaseSettings):
     secret_id: str = ""
     trusted_user_emails: list = []
     otp_email_subject: str = ""
+    bucket_name: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
