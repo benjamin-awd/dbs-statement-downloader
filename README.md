@@ -17,8 +17,9 @@ Clone the repo
 git clone https://github.com/benjamin-awd/dbs-statement-downloader.git
 ```
 
-Install dependencies using [Homebrew](https://brew.sh/)
+Install dependencies using [Homebrew](https://brew.sh/) and `poetry`
 ```bash
+brew install poetry
 poetry env use 3.11
 poetry shell
 poetry install
