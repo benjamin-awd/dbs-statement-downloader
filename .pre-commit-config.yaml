@@ -42,3 +42,12 @@ repos:
       language: system
       types: [python]
       require_serial: true
+
+  - repo: local
+    hooks:
+      - id: test
+        name: test
+        entry: poetry run task test
+        language: system
+        pass_filenames: false
+        types: [python]

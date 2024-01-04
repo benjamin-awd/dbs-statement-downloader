@@ -14,14 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 class DbsAuthHandler:
+    user_agent = " ".join(
+        [
+            "Mozilla/5.0 (X11; Linux x86_64)",
+            "AppleWebKit/537.36 (KHTML, like Gecko)",
+            "Chrome/120.0.0.0 Safari/537.36",
+        ]
+    )
+
     def __init__(self):
-        self.user_agent = " ".join(
-            [
-                "Mozilla/5.0 (X11; Linux x86_64)",
-                "AppleWebKit/537.36 (KHTML, like Gecko)",
-                "Chrome/120.0.0.0 Safari/537.36",
-            ]
-        )
         self.webdriver = self.create_driver()
 
     def create_driver(self) -> webdriver.Chrome:
