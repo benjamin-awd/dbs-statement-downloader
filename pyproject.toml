@@ -39,6 +39,8 @@ google-api-python-client-stubs = "^1.23.0"
 mypy = "^1.6.1"
 types-requests = "^2.31.0.20231231"
 types-python-dateutil = "^2.8.19.14"
+pytest-mock = "^3.12.0"
+requests-mock = "^1.11.0"
 
 [tool.taskipy.tasks]
 format = "isort . && black ."
@@ -46,6 +48,7 @@ lint = "flake8 src/dbs && pylint src/dbs"
 full_test = "pytest -n auto"
 mypy = "mypy src/dbs"
 ci = "poetry run task format && poetry run task lint && poetry run task test"
+test = "pytest ."
 
 [tool.pylint]
 good-names = ["i", "j", "k"]
