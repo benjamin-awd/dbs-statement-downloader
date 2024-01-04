@@ -6,7 +6,7 @@ from typing import Optional
 from uuid import uuid4
 
 import requests
-from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
@@ -115,12 +115,12 @@ class StatementDownloader:
     # pylint: disable=too-many-arguments
     def list_statements(
         self,
-        from_date: datetime = datetime.now() - relativedelta(months=6),
-        to_date: datetime = datetime.now(),
-        statement_type: str = "ALL",
-        sort_order: str = "DESC",
-        page_size: int = 10,
-        page_number: int = 1,
+        from_date: str,
+        to_date: str,
+        statement_type: str,
+        sort_order: str,
+        page_size: int,
+        page_number: int,
     ) -> list[dict]:
         """
         Returns a list of all estatement records within a given time period.
@@ -129,8 +129,8 @@ class StatementDownloader:
         """
         params: dict[str, str | int] = {
             "statementType": statement_type,
-            "from": from_date.strftime("%m%Y"),
-            "to": to_date.strftime("%m%Y"),
+            "from": parse(from_date).strftime("%m%Y"),
+            "to": parse(to_date).strftime("%m%Y"),
             "sortOrder": sort_order,
             "pageSize": page_size,
             "pageNumber": page_number,
