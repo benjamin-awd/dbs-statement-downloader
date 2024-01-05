@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbs-statement-downloader"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python library that downloads e-statements from DBS"
 repository = "https://github.com/benjamin-awd/dbs-statement-downloader"
 authors = ["Benjamin Dornel <benjamindornel@gmail.com>"]
