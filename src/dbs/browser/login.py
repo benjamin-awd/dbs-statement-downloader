@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 
@@ -22,8 +23,9 @@ class DbsAuthHandler:
         ]
     )
 
-    def __init__(self):
+    def __init__(self, gmail_client: Gmail):
         self.webdriver = self.create_driver()
+        self.gmail_client = gmail_client
 
     def create_driver(self) -> webdriver.Chrome:
         logger.info("Creating Chrome driver")
@@ -37,12 +39,11 @@ class DbsAuthHandler:
         options.add_argument("--disable-dev-shm-usage")
         return webdriver.Chrome(options=options)
 
-    @staticmethod
-    def get_otp() -> str:
+    async def get_otp(self) -> str:
+        message = await self.gmail_client.wait_for_new_message()
         logger.info("Attempting to retrieve OTP")
-        gmail = Gmail()
-        message = gmail.wait_for_new_message()
-        otp = gmail.extract_otp_from_message(message)
+
+        otp = self.gmail_client.extract_otp_from_message(message)
 
         if not otp:
             raise RuntimeError(f"OTP not found in email: {message.subject[:20]}")
@@ -80,19 +81,16 @@ class DbsAuthHandler:
             EC.element_to_be_clickable((By.LINK_TEXT, "Enter OTP Manually"))
         ).click()
 
-        # sms otp flow
-        driver.switch_to.parent_frame()
-        WebDriverWait(driver, 10).until(
-            EC.frame_to_be_available_and_switch_to_it((By.NAME, "user_area"))
-        )
-        driver.switch_to.frame("iframe1")
-        logger.info("Clicking 'Get OTP via SMS' button")
-        driver.find_element(By.LINK_TEXT, "Send SMS OTP").click()
-        driver.find_element(By.CSS_SELECTOR, "[title^='Get OTP via SMS']").click()
+        # Simultaneously trigger SMS and begin monitoring inbox for new messages
+        loop = asyncio.get_event_loop()
+        otp_task = loop.create_task(self.get_otp())
+        loop.run_until_complete(self.send_sms_otp(driver))
 
         # wait for SMS to be forwarded to email account
         # and then retrieve OTP from email body
-        otp = self.get_otp()
+        loop.run_until_complete(otp_task)
+        otp = otp_task.result()
+
         driver.find_element(By.NAME, "SMSLoginPin").send_keys(otp)
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "submitButton"))
@@ -112,3 +110,18 @@ class DbsAuthHandler:
         except Exception as err:
             logger.error("Error during login: %s", err)
             raise
+
+    @staticmethod
+    async def send_sms_otp(driver: webdriver.Chrome) -> webdriver.Chrome:
+        driver.switch_to.parent_frame()
+        WebDriverWait(driver, 10).until(
+            EC.frame_to_be_available_and_switch_to_it((By.NAME, "user_area"))
+        )
+        driver.switch_to.frame("iframe1")
+
+        await asyncio.sleep(0)
+
+        logger.info("Clicking 'Get OTP via SMS' button")
+        driver.find_element(By.LINK_TEXT, "Send SMS OTP").click()
+        driver.find_element(By.CSS_SELECTOR, "[title^='Get OTP via SMS']").click()
+        return driver

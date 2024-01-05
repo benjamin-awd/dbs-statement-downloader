@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import sys
@@ -74,7 +75,7 @@ class Gmail:
                             return result
         return None
 
-    def wait_for_new_message(self, timeout=time.time() + 60 * 5) -> Message:
+    async def wait_for_new_message(self, timeout=time.time() + 60 * 5) -> Message:
         """
         Waits for a new email message to arrive within the specified period.
 
@@ -98,7 +99,7 @@ class Gmail:
                 )
                 return latest_message
 
-            time.sleep(1)
+            await asyncio.sleep(1)
 
         raise RuntimeError("Timed out - new email not found in inbox")
 
