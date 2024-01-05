@@ -145,11 +145,15 @@ class StatementDownloader:
 
         records = json.loads(response.text)
 
-        logger.info(
-            "total records: %s, types: %s",
-            records["totalRecords"],
-            records["estatementTypes"],
-        )
+        try:
+            logger.info(
+                "total records: %s, types: %s",
+                records["totalRecords"],
+                records["estatementTypes"],
+            )
+        except KeyError as err:
+            logger.error("Error: %s Response: %s", err, response.text)
+
         return records["estatements"]
 
     def download_statement(self, record: StatementRecord):
