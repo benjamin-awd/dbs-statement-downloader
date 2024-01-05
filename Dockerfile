@@ -24,5 +24,6 @@ ENV VIRTUAL_ENV=/app/.venv \
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 RUN apt-get update && apt-get install -y chromium
+COPY ./src/dbs /app/dbs
 
 ENTRYPOINT ["python", "-m", "dbs.main"]
