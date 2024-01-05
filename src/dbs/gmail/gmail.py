@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class Gmail:
     def __init__(self, gmail_service: Optional[GmailResource] = None):
         if not gmail_service:
-            self.gmail_service = get_gmail_service()
+            self.gmail_service: GmailResource = get_gmail_service()
 
     def get_emails(self, query="is:unread", latest=False) -> list[Message]:
         if subject := settings.otp_email_subject:
@@ -85,7 +85,7 @@ class Gmail:
         Returns:
             latest_message: The latest email message received.
         """
-        logger.info("Waiting for new message")
+        logger.info("Monitoring inbox for new messages")
         start_time = time.time()
         current_message = self.get_emails(query="", latest=True)[0]
         logger.info("Current message %s", current_message.message_id)

@@ -1,12 +1,15 @@
 import argparse
 import logging
+from base64 import urlsafe_b64encode
 from datetime import datetime
+from email.message import EmailMessage
 
 from dateutil.relativedelta import relativedelta
 from google.cloud import storage  # type: ignore
 
 from dbs.browser.download import StatementDownloader, StatementRecord
 from dbs.browser.login import DbsAuthHandler
+from dbs.gmail import Gmail
 from dbs.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -18,7 +21,8 @@ def main():
     web portal using Selenium, and downloads estatements
     """
     args: Arguments = parse_arguments()
-    auth_handler = DbsAuthHandler()
+    gmail_client = Gmail()
+    auth_handler = DbsAuthHandler(gmail_client)
     driver = auth_handler.login()
     cookies = driver.get_cookies()
     downloader = StatementDownloader(cookies, auth_handler.user_agent)
@@ -37,6 +41,13 @@ def main():
 
         if args.upload:
             upload_to_cloud(source_filename=pdf_filename)
+
+        if args.email:
+            send_email(
+                client=gmail_client,
+                subject=f"DBS eStatement - {pdf_filename.split('.')[0].upper()}",
+                attachment=pdf_filename,
+            )
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -79,6 +90,11 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Flag that determines whether to upload to a cloud bucket",
     )
+    parser.add_argument(
+        "--email",
+        action="store_true",
+        help="Flag that determines whether to send statement(s) to an email",
+    )
     return parser.parse_args()
 
 
@@ -91,6 +107,7 @@ class Arguments(argparse.Namespace):
     page_size: int
     page_number: int
     upload: bool
+    email: bool
 
 
 def upload_to_cloud(
@@ -105,6 +122,36 @@ def upload_to_cloud(
     logger.info("Attempting to upload to 'gs://%s/%s'", bucket_name, bucket_name)
     blob.upload_from_filename(source_filename)
     logger.info("Uploaded to %s", blob_name)
+
+
+def send_email(
+    client: Gmail,
+    subject: str,
+    attachment: str,
+    to_address: str = settings.to_email,
+    from_address: str = settings.from_email,
+):
+    message = EmailMessage()
+    with open(attachment, "rb") as content_file:
+        content = content_file.read()
+        message.add_attachment(
+            content, maintype="application", subtype="pdf", filename=attachment
+        )
+        message["To"] = to_address
+        message["From"] = from_address
+        message["Subject"] = subject
+        encoded_message = urlsafe_b64encode(message.as_bytes()).decode()
+
+        create_message = {"raw": encoded_message}
+
+        # send email
+        (
+            client.gmail_service.users()
+            .messages()
+            .send(userId="me", body=create_message)  # type: ignore
+            .execute()
+        )
+        logger.info("Email sent: %s", message.__dict__)
 
 
 if __name__ == "__main__":
